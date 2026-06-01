@@ -43,32 +43,52 @@ def _get(url):
     return BeautifulSoup(resp.text, 'html.parser')
 
 
-def get_upcoming_event():
-    soup = _get(f'{BASE}/statistics/events/upcoming')
+def _event_id(url):
+    return hashlib.md5(url.encode()).hexdigest()[:12]
+
+
+def _scrape_event_list(page_url, status):
+    soup = _get(page_url)
     table = soup.select_one('table.b-statistics__table-events')
     if not table:
-        return None
-
+        return []
+    events = []
     for row in table.select('tbody tr.b-statistics__table-row'):
         link_el = row.select_one('a.b-link')
         if not link_el:
             continue
-
         cols = row.select('td')
         date_el = cols[0].select_one('span.b-statistics__date') if cols else None
-        event = {
+        events.append({
+            'id': _event_id(link_el['href']),
             'name': link_el.text.strip(),
             'url': link_el['href'],
             'date': date_el.text.strip() if date_el else '',
             'location': cols[1].text.strip() if len(cols) > 1 else '',
-        }
-        event['fights'] = _get_fights(event['url'])
-        return event
+            'status': status,
+            'is_next': False,
+            'is_most_recent': False,
+        })
+    return events
 
-    return None
+
+def get_events_list(max_completed=8):
+    upcoming = _scrape_event_list(f'{BASE}/statistics/events/upcoming', 'upcoming')
+    completed = _scrape_event_list(f'{BASE}/statistics/events/completed', 'completed')
+    if upcoming:
+        upcoming[0]['is_next'] = True
+    if completed:
+        completed[0]['is_most_recent'] = True
+    return upcoming + completed[:max_completed]
 
 
-def _get_fights(event_url):
+def get_event_details(meta):
+    is_completed = meta.get('status') == 'completed'
+    fights = _get_fights(meta['url'], completed=is_completed)
+    return {**meta, 'fights': fights}
+
+
+def _get_fights(event_url, completed=False):
     soup = _get(event_url)
     fights = []
 
@@ -89,6 +109,7 @@ def _get_fights(event_url):
             'fighter1': {'name': links[0].text.strip(), 'link': links[0].get('href', '')},
             'fighter2': {'name': links[1].text.strip(), 'link': links[1].get('href', '')},
             'weight_class': weight_class,
+            'winner': links[0].text.strip() if completed else None,
         })
 
     return fights

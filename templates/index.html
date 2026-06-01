@@ -7,9 +7,22 @@
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
+
+  <div class="sidebar-overlay hidden" id="sidebarOverlay" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Events</span>
+      <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+    </div>
+    <div class="sidebar-list" id="sidebarList">
+      <div class="sidebar-loading">Loading events…</div>
+    </div>
+  </aside>
+
   <header class="site-header">
     <div class="container">
       <div class="header-inner">
+        <button class="sidebar-btn" onclick="toggleSidebar()">&#9776; Events</button>
         <div class="logo">
           <span class="logo-ufc">UFC</span>
           <span class="logo-text">Value Bet Finder</span>
@@ -19,7 +32,7 @@
           Odds analysis requires a free <a href="https://the-odds-api.com" target="_blank">Odds API key</a> — add it to <code>.env</code> as <code>ODDS_API_KEY</code>
         </div>
         {% endif %}
-        <button class="refresh-btn" id="refreshBtn" onclick="loadEvent(true)">↻ Refresh</button>
+        <button class="refresh-btn" id="refreshBtn" onclick="refreshEvent()">↻ Refresh</button>
       </div>
     </div>
   </header>
@@ -33,7 +46,7 @@
 
     <div id="error" class="error-state hidden">
       <p id="errorMsg"></p>
-      <button onclick="loadEvent(true)">Try again</button>
+      <button onclick="refreshEvent()">Try again</button>
     </div>
 
     <div id="content" class="hidden">

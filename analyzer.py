@@ -222,3 +222,16 @@ def analyze_fights(fights, api_key=''):
         })
 
     return results
+
+
+def compute_model_record(fights):
+    correct = incorrect = 0
+    for fight in fights:
+        winner = fight.get('winner')
+        pick = fight.get('value_fighter')
+        if winner and pick:
+            if winner == pick:
+                correct += 1
+            else:
+                incorrect += 1
+    return {'correct': correct, 'incorrect': incorrect}
