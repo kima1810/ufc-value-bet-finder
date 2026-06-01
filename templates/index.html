@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UFC Value Bet Finder</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-ufc">UFC</span>
+          <span class="logo-text">Value Bet Finder</span>
+        </div>
+        {% if not has_key %}
+        <div class="no-key-banner">
+          Odds analysis requires a free <a href="https://the-odds-api.com" target="_blank">Odds API key</a> — add it to <code>.env</code> as <code>ODDS_API_KEY</code>
+        </div>
+        {% endif %}
+        <button class="refresh-btn" id="refreshBtn" onclick="loadEvent(true)">↻ Refresh</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Pulling fight card &amp; fighter stats…</p>
+      <p class="loading-sub">Scraping ufcstats.com — takes ~15 seconds on first load</p>
+    </div>
+
+    <div id="error" class="error-state hidden">
+      <p id="errorMsg"></p>
+      <button onclick="loadEvent(true)">Try again</button>
+    </div>
+
+    <div id="content" class="hidden">
+      <section id="eventHeader" class="event-header"></section>
+      <div id="fights"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      Stats: <a href="http://www.ufcstats.com" target="_blank">UFCStats.com</a> &nbsp;·&nbsp;
+      Odds: <a href="https://the-odds-api.com" target="_blank">The Odds API</a> &nbsp;·&nbsp;
+      <span class="disclaimer">For entertainment only. Gamble responsibly.</span>
+    </div>
+  </footer>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
