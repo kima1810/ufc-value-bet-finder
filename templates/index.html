@@ -24,8 +24,7 @@
       <div class="header-inner">
         <button class="sidebar-btn" onclick="toggleSidebar()">&#9776; Events</button>
         <div class="logo">
-          <span class="logo-ufc">UFC</span>
-          <span class="logo-text">Value Bet Finder</span>
+          <span class="logo-brand"><span class="logo-brand-kim">KIM</span><span class="logo-brand-metrics">METRICS</span></span>
         </div>
         {% if not has_key %}
         <div class="no-key-banner">
@@ -38,6 +37,13 @@
   </header>
 
   <main class="container">
+    <div class="page-title">
+      <div class="logo">
+        <span class="logo-ufc">UFC</span>
+        <span class="logo-text">Value Bets</span>
+      </div>
+    </div>
+
     <div id="loading" class="loading-state">
       <div class="spinner"></div>
       <p>Pulling fight card &amp; fighter stats…</p>
