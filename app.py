@@ -76,11 +76,14 @@ def _build_event_full(meta, force=False):
             if data:
                 return data
 
+    previous = _disk_read(path) if os.path.exists(path) else None
+    previous_fights = previous.get('fights') if previous else None
+
     event = get_event_details(meta)
     if not event:
         return None
     event['fights'] = fetch_all_stats(event['fights'])
-    event['fights'] = analyze_fights(event['fights'], ODDS_API_KEY)
+    event['fights'] = analyze_fights(event['fights'], ODDS_API_KEY, previous_fights)
     if is_completed:
         event['model_record'] = compute_model_record(event['fights'])
 

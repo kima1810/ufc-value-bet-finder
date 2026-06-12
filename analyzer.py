@@ -102,6 +102,18 @@ def _model_probs(s1, s2):
     return c1 / t, c2 / t
 
 
+def _find_previous_fight(f1_name, f2_name, previous_fights):
+    if not previous_fights:
+        return None
+    for pf in previous_fights:
+        pf1, pf2 = pf.get('fighter1', {}), pf.get('fighter2', {})
+        if _sim(f1_name, pf1.get('name', '')) > 0.8 and _sim(f2_name, pf2.get('name', '')) > 0.8:
+            return pf, False
+        if _sim(f1_name, pf2.get('name', '')) > 0.8 and _sim(f2_name, pf1.get('name', '')) > 0.8:
+            return pf, True
+    return None
+
+
 def _reasons(f1_name, f2_name, s1, s2, p1, implied1):
     reasons = []
     s1, s2 = s1 or {}, s2 or {}
@@ -156,7 +168,7 @@ def _reasons(f1_name, f2_name, s1, s2, p1, implied1):
     return reasons[:3]
 
 
-def analyze_fights(fights, api_key=''):
+def analyze_fights(fights, api_key='', previous_fights=None):
     odds_data = get_odds(api_key)
     results = []
 
@@ -168,6 +180,7 @@ def analyze_fights(fights, api_key=''):
 
         f1_odds = f2_odds = f1_implied = f2_implied = None
         ev, f1_is_home = _find_fight(f1['name'], f2['name'], odds_data)
+        has_odds = ev is not None
 
         if ev:
             home_name = ev['home_team']
@@ -178,6 +191,21 @@ def analyze_fights(fights, api_key=''):
             f2_odds = _best_odds(ev, n2)
             f1_implied = _avg_fair_prob(ev, n1)
             f2_implied = _avg_fair_prob(ev, n2)
+        else:
+            # Live odds API no longer has this fight (e.g. event finished) —
+            # fall back to the odds captured the last time it was available.
+            prev = _find_previous_fight(f1['name'], f2['name'], previous_fights)
+            if prev:
+                pf, swapped = prev
+                pf1 = pf['fighter2'] if swapped else pf['fighter1']
+                pf2 = pf['fighter1'] if swapped else pf['fighter2']
+                f1_odds = pf1.get('odds')
+                f2_odds = pf2.get('odds')
+                prev_implied1 = pf1.get('implied_prob')
+                prev_implied2 = pf2.get('implied_prob')
+                f1_implied = prev_implied1 / 100 if prev_implied1 is not None else None
+                f2_implied = prev_implied2 / 100 if prev_implied2 is not None else None
+                has_odds = pf.get('has_odds', False)
 
         e1 = (p1 - f1_implied) if f1_implied else None
         e2 = (p2 - f2_implied) if f2_implied else None
@@ -218,7 +246,7 @@ def analyze_fights(fights, api_key=''):
             },
             'value_fighter': value_fighter,
             'value_reasons': value_reasons,
-            'has_odds': ev is not None,
+            'has_odds': has_odds,
         })
 
     return results
